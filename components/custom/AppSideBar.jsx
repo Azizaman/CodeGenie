@@ -35,7 +35,9 @@ function AppSideBar() {
         </SidebarGroup>
         <SidebarGroup />
       </SidebarContent>
-      <SidebarFooter />
+      <SidebarFooter>
+        <Button>Subscription</Button>
+      </SidebarFooter>
     </Sidebar>
   );
 }

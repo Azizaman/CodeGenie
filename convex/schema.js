@@ -7,17 +7,14 @@ export default defineSchema({
     email: v.string(),
     picture: v.string(),
     uuid: v.string(),
-    token: v.optional(v.number()), // ✅ Token is optional
+    token: v.optional(v.number()),
   }),
   workspace: defineTable({
     messages: v.any(),
-    fileData: v.optional(v.any()), // ✅ Ensure fileData is optional
+    fileData: v.optional(v.any()),
     user: v.id("users"),
   }),
 });
-
-
-
 
 
 

@@ -1,4 +1,6 @@
-import React, { useContext } from "react";
+"use client";
+
+import React, { useContext, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +21,16 @@ function SigninDialog({ openDialog, closeDialog }) {
   const { userDetail, setUserDetail } = useContext(UserDetailContext);
   const CreateUser = useMutation(api.users.CreateUser);
 
+  // Load user from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUserDetail(JSON.parse(storedUser));
+      }
+    }
+  }, []);
+
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       console.log("Google Token Response:", tokenResponse);
@@ -34,19 +46,23 @@ function SigninDialog({ openDialog, closeDialog }) {
         const user = userInfoResponse.data;
         console.log("Google User Info:", user);
 
-        await CreateUser({
+        // Create the user in Convex and capture the returned _id
+        const createdUserId = await CreateUser({
           name: user?.name,
           email: user?.email,
           picture: user?.picture,
           uuid: uuid4(),
         });
 
+        // Merge the returned _id into the user data
+        const userDataWithId = { ...user, _id: createdUserId };
+
         if (typeof window !== "undefined") {
-          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem("user", JSON.stringify(userDataWithId));
         }
 
-        setUserDetail(user);
-        closeDialog(false); // ✅ Close dialog correctly
+        setUserDetail(userDataWithId);
+        closeDialog(false);
       } catch (error) {
         console.error("Error during Google Login:", error);
       }
@@ -56,11 +72,10 @@ function SigninDialog({ openDialog, closeDialog }) {
 
   const logout = () => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("user"); // ✅ Remove user session
+      localStorage.removeItem("user");
     }
-
     setUserDetail(null);
-    window.location.reload(); // ✅ Reload to clear session
+    window.location.reload();
   };
 
   return (
@@ -72,12 +87,21 @@ function SigninDialog({ openDialog, closeDialog }) {
             <div className="flex flex-col justify-center items-center font-bold gap-3">
               <h2>{Lookup.SIGNIN_HEADING}</h2>
               <div className="mt-2 text-center">{Lookup.SIGNIN_SUBHEADING}</div>
-              <Button
-                className="bg-blue-500 text-white hover:bg-blue-400 mt-4"
-                onClick={googleLogin}
-              >
-                Sign in with Google
-              </Button>
+              {!userDetail ? (
+                <Button
+                  className="bg-blue-500 text-white hover:bg-blue-400 mt-4"
+                  onClick={googleLogin}
+                >
+                  Sign in with Google
+                </Button>
+              ) : (
+                <Button
+                  className="bg-red-500 text-white hover:bg-red-400 mt-4"
+                  onClick={logout}
+                >
+                  Logout
+                </Button>
+              )}
               <div>{Lookup.SIGNIn_AGREEMENT_TEXT}</div>
             </div>
           </DialogDescription>

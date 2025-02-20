@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// ✅ Creates user if not exists
+// Creates a user if not exists; returns the user’s _id.
 export const CreateUser = mutation({
   args: {
     name: v.string(),
@@ -10,24 +10,26 @@ export const CreateUser = mutation({
     uuid: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db
+    const existingUsers = await ctx.db
       .query("users")
       .filter((q) => q.eq(q.field("email"), args.email))
       .collect();
 
-    if (user.length === 0) {
-      await ctx.db.insert("users", {
+    if (existingUsers.length === 0) {
+      const newUser = await ctx.db.insert("users", {
         name: args.name,
         picture: args.picture,
         email: args.email,
         uuid: args.uuid,
         token: 50000,
       });
+      return newUser; // newUser is the Convex ID.
+    } else {
+      return existingUsers[0]._id; // Return existing user's _id.
     }
   },
 });
 
-// ✅ Fetches user by email safely
 export const GetUser = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
@@ -35,19 +37,16 @@ export const GetUser = query({
       .query("users")
       .filter((q) => q.eq(q.field("email"), args.email))
       .collect();
-    return user[0] || null; // ✅ Returns `null` if user not found
+    return user[0] || null;
   },
 });
 
-// ✅ Updates user token safely
 export const UpdateToken = mutation({
   args: { token: v.number(), userId: v.id("users") },
   handler: async (ctx, args) => {
     return ctx.db.patch(args.userId, { token: args.token });
   },
 });
-
-
 
 
 
