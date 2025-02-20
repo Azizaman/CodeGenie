@@ -1,44 +1,47 @@
-"use client" 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarHeader,
-} from "@/components/ui/sidebar";
-import { Button } from '../ui/button';
-import { MessageCircleCode } from 'lucide-react';
-import WorkspaceHistory from './WorkspaceHistory';
-import { useRouter } from 'next/navigation';
-function AppSideBar() {
-  const router=useRouter();
-  const [renderKey, setRenderKey] = useState(0);  // Trigger controlled re-renders
+"use client";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader } from "@/components/ui/sidebar";
+import { Button } from "../ui/button";
+import { MessageCircleCode } from "lucide-react";
+import WorkspaceHistory from "./WorkspaceHistory";
+import { useRouter, usePathname } from "next/navigation";
 
-  // Function to force re-render
-  const forceReRender = () => {
-    setRenderKey(prev => prev + 1);
+function AppSideBar() {
+  const router = useRouter();
+  const pathname = usePathname(); // Get current route
+
+  // ✅ Prevent sidebar from unmounting when clicking a conversation
+  const handleConversationClick = (workspaceId) => {
+    if (pathname !== `/workspace/${workspaceId}`) {
+      router.push(`/workspace/${workspaceId}`);
+    }
   };
 
+  // ✅ Keep sidebar state persistent across navigation
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    setIsSidebarOpen(true); // Ensure sidebar stays open after navigation
+  }, [pathname]);
+
   return (
-    <Sidebar>
+    <div className={`h-screen bg-black text-white transition-all duration-300 overflow-auto ${isSidebarOpen ? "w-64" : "w-0 hidden"}`}>
       <SidebarHeader className="p-2">
-        <Image src={'/logo.png'} alt="logo" height={75} width={75} onClick={()=>router.push('/')} className='cursor-pointer'></Image>
+       
       </SidebarHeader>
-      <SidebarContent className={'p-5'}>
-        <Button onClick={forceReRender}> 
-          <MessageCircleCode/> Start New Chat 
+      <SidebarContent className="p-5">
+        <Button onClick={() => router.push('/')}>
+          <MessageCircleCode /> Start New Chat
         </Button>
         <SidebarGroup>
-          <WorkspaceHistory key={renderKey} forceReRender={forceReRender} />
+          <WorkspaceHistory />
         </SidebarGroup>
-        <SidebarGroup />
       </SidebarContent>
       <SidebarFooter>
         <Button>Subscription</Button>
       </SidebarFooter>
-    </Sidebar>
+    </div>
   );
 }
 

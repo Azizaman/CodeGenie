@@ -38,7 +38,10 @@ function Hero() {
     setMessages((prev) => (Array.isArray(prev) ? [...prev, msg] : [msg]));
 
     try {
-      const response = await CreateWorkspace({ user: userDetail._id, messages: [msg] });
+      const response = await CreateWorkspace({
+        user: userDetail._id,
+        messages: [msg],
+      });
 
       console.log("CreateWorkspace Response:", response);
 
@@ -82,6 +85,28 @@ function Hero() {
           <Link className="h-5 w-5" />
         </div>
       </div>
+      {/* Show Sign In or Logout button */}
+      {!userDetail ? (
+        <Button
+          className="bg-blue-500 text-white hover:bg-blue-400 mt-4"
+          onClick={() => setOpenDialog(true)}
+        >
+          Sign In
+        </Button>
+      ) : (
+        <Button
+          className="bg-red-500 text-white hover:bg-red-400 mt-4"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("user");
+            }
+            // Clear user details and reload
+            window.location.reload();
+          }}
+        >
+          Logout
+        </Button>
+      )}
       <SigninDialog openDialog={openDialog} closeDialog={setOpenDialog} />
     </div>
   );

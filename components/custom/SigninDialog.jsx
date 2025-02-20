@@ -21,7 +21,6 @@ function SigninDialog({ openDialog, closeDialog }) {
   const { userDetail, setUserDetail } = useContext(UserDetailContext);
   const CreateUser = useMutation(api.users.CreateUser);
 
-  // Load user from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUser = localStorage.getItem("user");
@@ -46,7 +45,6 @@ function SigninDialog({ openDialog, closeDialog }) {
         const user = userInfoResponse.data;
         console.log("Google User Info:", user);
 
-        // Create the user in Convex and capture the returned _id
         const createdUserId = await CreateUser({
           name: user?.name,
           email: user?.email,
@@ -54,7 +52,6 @@ function SigninDialog({ openDialog, closeDialog }) {
           uuid: uuid4(),
         });
 
-        // Merge the returned _id into the user data
         const userDataWithId = { ...user, _id: createdUserId };
 
         if (typeof window !== "undefined") {

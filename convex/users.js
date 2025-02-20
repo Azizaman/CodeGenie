@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// Creates a user if not exists; returns the user’s _id.
+// CreateUser: If user doesn't exist, insert and return new user ID; otherwise, return existing user's _id.
 export const CreateUser = mutation({
   args: {
     name: v.string(),
@@ -18,14 +18,14 @@ export const CreateUser = mutation({
     if (existingUsers.length === 0) {
       const newUser = await ctx.db.insert("users", {
         name: args.name,
-        picture: args.picture,
         email: args.email,
+        picture: args.picture,
         uuid: args.uuid,
         token: 50000,
       });
-      return newUser; // newUser is the Convex ID.
+      return newUser;
     } else {
-      return existingUsers[0]._id; // Return existing user's _id.
+      return existingUsers[0]._id;
     }
   },
 });
@@ -47,16 +47,6 @@ export const UpdateToken = mutation({
     return ctx.db.patch(args.userId, { token: args.token });
   },
 });
-
-
-
-
-
-
-
-
-
-
 
 
 
