@@ -9,7 +9,7 @@ export default{
   - Include explanations, best practices, and recommendations.
   - If the user asks for a landing page, suggest layouts, components, and design ideas.
   - Keep responses concise but informative (max ~200 words).
-  -do not write any code 
+   -do not write any code examples.
   '
   `,
 

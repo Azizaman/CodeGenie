@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// CreateUser: If user doesn't exist, insert and return new user ID; otherwise, return existing user's _id.
+// ✅ CreateUser: Inserts user if they don't exist
 export const CreateUser = mutation({
   args: {
     name: v.string(),
@@ -10,132 +10,55 @@ export const CreateUser = mutation({
     uuid: v.string(),
   },
   handler: async (ctx, args) => {
-    const existingUsers = await ctx.db
+    const existingUser = await ctx.db
       .query("users")
       .filter((q) => q.eq(q.field("email"), args.email))
-      .collect();
+      .unique();
 
-    if (existingUsers.length === 0) {
-      const newUser = await ctx.db.insert("users", {
+    if (!existingUser) {
+      const newUserId = await ctx.db.insert("users", {
         name: args.name,
         email: args.email,
         picture: args.picture,
         uuid: args.uuid,
-        token: 50000,
+        token: 50000, // Default tokens for new users
       });
-      return newUser;
-    } else {
-      return existingUsers[0]._id;
+
+      return { _id: newUserId, ...args, token: 50000 };
     }
+
+    return existingUser;
   },
 });
 
+// ✅ GetUser: Ensures email is always passed
 export const GetUser = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
       .filter((q) => q.eq(q.field("email"), args.email))
-      .collect();
-    return user[0] || null;
+      .unique();
+
+    if (!user) {
+      throw new Error(`User with email ${args.email} not found.`);
+    }
+    return user;
   },
 });
 
+// ✅ UpdateToken: Used for both deduction and addition
 export const UpdateToken = mutation({
-  args: { token: v.number(), userId: v.id("users") },
+  args: { userId: v.id("users"), tokensToAdd: v.number() },
   handler: async (ctx, args) => {
-    return ctx.db.patch(args.userId, { token: args.token });
+    if (args.tokensToAdd === 0) return; // No change needed
+
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new Error(`User not found: ${args.userId}`);
+
+    const newTokenCount = Math.max(0, user.token + args.tokensToAdd); // Ensure no negative balance
+
+    await ctx.db.patch(args.userId, { token: newTokenCount });
+    return { newTokens: newTokenCount };
   },
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { v } from "convex/values";
-// import { mutation, query } from "./_generated/server";
-
-// // Handler
-// export const CreateUser = mutation({
-//     args: {
-//         name: v.string(),
-//         email: v.string(),
-//         picture: v.string(),
-//         uuid: v.string(), // Updated field name
-//     },
-//     handler: async (ctx, args) => {
-//         const user = await ctx.db.query("users").filter((q) => q.eq(q.field("email"), args.email)).collect();
-//         console.log(user);
-//         if (user?.length == 0) {
-//             const result = await ctx.db.insert("users", {
-//                 name: args.name,
-//                 picture: args.picture,
-//                 email: args.email,
-//                 uuid: args.uuid, // No changes
-//                 token:50000
-//             });
-//             console.log(result);
-//         }
-//     },
-// });
-
-// export const GetUser=query({
-//     args:{
-//         email:v.string(),
-//     },
-//     handler:async (ctx, args) => {
-//         const user = await ctx.db.query("users").filter((q) => q.eq(q.field("email"), args.email)).collect();
-//         return user[0];
-
-//     }
-// })
-
-
-
-
-// export const UpdateToken = mutation({
-//   args: {
-//     token: v.number(),
-//     userId: v.id("users"),
-//   },
-//   handler: async (ctx, args) => {
-//     // ✅ Ensure `ctx.db` is available before using it
-//     if (!ctx.db) {
-//       throw new Error("Database context (ctx.db) is undefined.");
-//     }
-
-//     const user = await ctx.db.get(args.userId);
-    
-//     if (!user) {
-//       throw new Error(`User not found with ID: ${args.userId}`);
-//     }
-
-//     return ctx.db.patch(args.userId, {
-//       token: args.token,
-//     });
-//   },
-// });
-
-
-  
-
-// export const UpdateToken=mutation({
-//     args:{
-//         token:v.number(),
-//         userId:v.id('users')
-//     },
-//     handler:async(ctx,args)=>{
-//         const result=await ctx.db.patch(args.userId,{
-//             token:args.token
-//         });
-//         return result;
-//     }
-// })

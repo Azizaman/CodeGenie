@@ -39,7 +39,7 @@ function AppSideBar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <Button>Subscription</Button>
+        <Button onClick={()=>router.push('/pricing')}>Subscription</Button>
       </SidebarFooter>
     </div>
   );
