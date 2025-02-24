@@ -28,9 +28,17 @@ function Hero() {
       return;
     }
 
-    if (!userDetail?._id) {
-      console.error("User ID is missing");
-      alert("You need to be logged in to create a workspace.");
+    // Normalize the user ID:
+    let userIdString = "";
+    if (typeof userDetail._id === "string") {
+      userIdString = userDetail._id;
+    } else if (typeof userDetail._id === "object" && userDetail._id !== null) {
+      userIdString = userDetail._id._id || userDetail._id.id || "";
+    }
+
+    if (!userIdString) {
+      console.error("User ID is missing or invalid", userDetail);
+      alert("Your session may have expired. Please log in again.");
       return;
     }
 
@@ -38,8 +46,10 @@ function Hero() {
     setMessages((prev) => (Array.isArray(prev) ? [...prev, msg] : [msg]));
 
     try {
+      console.log("Full user detail:", userDetail);
+      // Pass only the normalized user ID to the mutation.
       const response = await CreateWorkspace({
-        user: userDetail._id,
+        user: userIdString,
         messages: [msg],
       });
 
@@ -60,53 +70,62 @@ function Hero() {
   };
 
   return (
-    <div className="flex flex-col items-center mt-32 xl:mt-24 gap-2 ml-72">
-      <h2 className="font-bold text-4xl">{Lookup.HERO_HEADING}</h2>
-      <p className="text-gray-400 font-medium">{Lookup.HERO_DESC}</p>
+    <div className="flex flex-col items-center mt-16 md:mt-32 gap-4 mx-4 md:ml-72">
+      <h2 className="font-bold text-4xl md:text-5xl text-center">{Lookup.HERO_HEADING}</h2>
+      <p className="text-gray-400 text-base md:text-lg text-center">{Lookup.HERO_DESC}</p>
       <div
-        className="p-5 border rounded-xl max-w-xl w-full mt-3"
+        className="p-6 border rounded-xl max-w-xl w-full mt-6 shadow-md"
         style={{ backgroundColor: Colors.BACKGROUND }}
       >
         <div className="flex gap-2">
           <textarea
             placeholder={Lookup.INPUT_PLACEHOLDER}
             onChange={(e) => setUserInput(e.target.value)}
-            className="outline-none bg-transparent w-full h-32 max-h-56 resize-none"
+            className="outline-none bg-transparent w-full h-32 max-h-56 resize-none text-sm"
             value={userInput}
           />
           {userInput && (
             <ArrowRight
               onClick={() => onGenerate(userInput)}
-              className="bg-blue-500 h-8 w-8 p-2 rounded-md cursor-pointer"
+              className="bg-blue-500 text-white h-10 w-10 p-2 rounded-full cursor-pointer hover:bg-blue-400 transition-colors"
             />
           )}
         </div>
-        <div>
-          <Link className="h-5 w-5" />
-        </div>
       </div>
-      {/* Show Sign In or Logout button */}
-      {!userDetail ? (
-        <Button
-          className="bg-blue-500 text-white hover:bg-blue-400 mt-4"
-          onClick={() => setOpenDialog(true)}
-        >
-          Sign In
-        </Button>
-      ) : (
-        <Button
-          className="bg-red-500 text-white hover:bg-red-400 mt-4"
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              localStorage.removeItem("user");
-            }
-            // Clear user details and reload
-            window.location.reload();
-          }}
-        >
-          Logout
-        </Button>
-      )}
+      {/* Dark-themed Suggestions Container */}
+      <div className="w-full max-w-xl ml-2 rounded-lg p-4 flex flex-wrap gap-2">
+        {Lookup.SUGGSTIONS.map((suggestion, index) => (
+          <button
+            key={index}
+            onClick={() => onGenerate(suggestion)}
+            className="bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition-colors text-sm"
+          >
+            {suggestion}
+          </button>
+        ))}
+      </div>
+      <div className="mt-4">
+        {!userDetail ? (
+          <Button
+            className="bg-blue-500 text-white hover:bg-blue-400"
+            onClick={() => setOpenDialog(true)}
+          >
+            Sign In
+          </Button>
+        ) : (
+          <Button
+            className="bg-red-500 text-white hover:bg-red-400"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                localStorage.removeItem("user");
+              }
+              window.location.reload();
+            }}
+          >
+            Logout
+          </Button>
+        )}
+      </div>
       <SigninDialog openDialog={openDialog} closeDialog={setOpenDialog} />
     </div>
   );

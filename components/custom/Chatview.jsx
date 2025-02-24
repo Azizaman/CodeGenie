@@ -13,9 +13,8 @@ import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import Prompt from "@/data/Prompt";
 
-// Token counting function
 export const countToken = (inputText) => {
-  return inputText.trim().split(/\s+/).filter((word) => word).length * 2; // Example: 2 tokens per word
+  return inputText.trim().split(/\s+/).filter((word) => word).length * 2;
 };
 
 function Chatview() {
@@ -30,7 +29,6 @@ function Chatview() {
   const UpdateTokens = useMutation(api.users.UpdateToken);
 
   useEffect(() => {
-    // Reload the page once for a new workspace id
     const hasReloaded = sessionStorage.getItem(`reloaded-${id}`);
     if (!hasReloaded) {
       sessionStorage.setItem(`reloaded-${id}`, "true");
@@ -45,7 +43,6 @@ function Chatview() {
       const result = await convex.query(api.workspace.GetworkspaceData, {
         workspaceId: id,
       });
-      console.log("API Response:", result);
       setMessages(Array.isArray(result.messages) ? result.messages : []);
     } catch (error) {
       console.error("Error fetching workspace data:", error);
@@ -55,11 +52,8 @@ function Chatview() {
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
-  
       if (lastMessage.role === "user" && !lastMessage.processed) {
         GetAiResponse();
-  
-        // Mark the message as processed to prevent infinite loop
         setMessages((prev) =>
           prev.map((msg, index) =>
             index === prev.length - 1 ? { ...msg, processed: true } : msg
@@ -68,7 +62,6 @@ function Chatview() {
       }
     }
   }, [messages]);
-  
 
   const GetAiResponse = async () => {
     setLoading(true);
@@ -76,56 +69,30 @@ function Chatview() {
       role: msg.role,
       content: msg.content,
     }));
+    
     const PROMPT = `${Prompt.CHAT_PROMPT}\nUser Input: ${userInput}\nConversation:\n${messages
-    .map((msg) => `${msg.role}: ${msg.content}`)
-    .join("\n")}`;
-  
+      .map((msg) => `${msg.role}: ${msg.content}`)
+      .join("\n")}`;
 
     try {
-      const result = await axios.post(
-        "/api/ai-chat",
-        {
-          prompt: PROMPT,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const aiResp = {
-        role: "ai",
-        content: result.data.response,
-      };
-
+      const result = await axios.post("/api/ai-chat", { prompt: PROMPT });
+      const aiResp = { role: "ai", content: result.data.response };
+      
       setMessages((prev) => [...prev, aiResp]);
+      await UpdateMessages({ messages: [...messages, aiResp], workspaceId: id });
 
-      await UpdateMessages({
-        messages: [...messages, aiResp],
-        workspaceId: id,
-      });
-
-      // Fetch latest user details before updating tokens
       const latestUserDetail = await convex.query(api.users.GetUser, {
         email: userDetail.email,
       });
 
       const tokenUsage = countToken(aiResp.content);
-      const remainingTokens = Number(latestUserDetail?.token) - tokenUsage;
-
-      if (remainingTokens >= 0) {
-        await UpdateTokens({
+      if (Number(latestUserDetail.token) >= tokenUsage) {
+        const deductionResult = await UpdateTokens({
           userId: latestUserDetail._id,
-          token: remainingTokens,
+          token: tokenUsage,
         });
-
-        // Update user details in the state
-        setUserDetail({ ...latestUserDetail, token: remainingTokens });
-
-        console.log("Tokens deducted from the chatview:", tokenUsage, "Remaining:", remainingTokens);
+        setUserDetail({ ...latestUserDetail, token: deductionResult.token });
       } else {
-        console.error("Insufficient tokens.");
         alert("You have run out of tokens. Please purchase more.");
       }
     } catch (error) {
@@ -137,36 +104,28 @@ function Chatview() {
 
   const onGenerate = (input) => {
     if (input.trim()) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "user",
-          content: input,
-        },
-      ]);
+      setMessages((prev) => [...prev, { role: "user", content: input }]);
       setUserInput("");
     }
   };
 
   return (
-    <div key={id} className="relative h-[80vh] flex flex-col">
-      <div className="flex-1 overflow-y-scroll scrollbar-hide">
+    <div className="relative h-screen md:h-[80vh] flex flex-col">
+      <div className="flex-1 overflow-y-auto p-2">
         {messages.length > 0 ? (
           messages.map((msg, index) => (
             <div
               key={index}
-              className="p-3 rounded-lg mb-2 flex gap-2 items-start leading-7"
-              style={{
-                backgroundColor: Colors.CHAT_BACKGROUND,
-              }}
+              className="p-3 rounded-lg mb-2 flex gap-2 items-start leading-7 text-sm md:text-base"
+              style={{ backgroundColor: Colors.CHAT_BACKGROUND }}
             >
               {msg?.role === "user" && (
                 <Image
                   src={userDetail?.picture}
                   alt="userImage"
-                  width={35}
-                  height={35}
-                  className="rounded-full"
+                  width={30}
+                  height={30}
+                  className="rounded-full w-8 h-8 md:w-10 md:h-10"
                 />
               )}
               <ReactMarkdown className="flex flex-col overflow-hidden">
@@ -175,36 +134,29 @@ function Chatview() {
             </div>
           ))
         ) : (
-          <p>No messages yet.</p>
+          <p className="text-center text-gray-400 mt-4">No messages yet. Start a conversation!</p>
         )}
         {loading && (
-          <div
-            className="p-3 rounded-lg mb-2 flex gap-2 items-start"
-            style={{
-              backgroundColor: Colors.CHAT_BACKGROUND,
-            }}
-          >
-            <Loader2Icon className="animate-spin" />
-            <h2>Generating the response...</h2>
+          <div className="p-3 rounded-lg mb-2 flex gap-2 items-start" style={{ backgroundColor: Colors.CHAT_BACKGROUND }}>
+            <Loader2Icon className="animate-spin w-4 h-4 md:w-6 md:h-6" />
+            <h2 className="text-sm md:text-base">Generating response...</h2>
           </div>
         )}
       </div>
-      <div className="flex gap-1 items-end">
-        <div
-          className="p-5 border rounded-xl max-w-xl w-full mt-3"
-          style={{ backgroundColor: Colors.BACKGROUND }}
-        >
-          <div className="flex gap-2">
+      
+      <div className="px-2 md:px-0 mt-4">
+        <div className="p-3 md:p-5 border rounded-xl w-full" style={{ backgroundColor: Colors.BACKGROUND }}>
+          <div className="flex gap-2 items-end">
             <textarea
               placeholder={Lookup.INPUT_PLACEHOLDER}
-              onChange={(event) => setUserInput(event.target.value)}
-              className="outline-none bg-transparent w-full h-24 max-h-56 resize-none"
+              onChange={(e) => setUserInput(e.target.value)}
               value={userInput}
+              className="outline-none bg-transparent w-full h-16 md:h-24 resize-none text-sm md:text-base"
             />
             {userInput && (
               <ArrowRight
                 onClick={() => onGenerate(userInput)}
-                className="bg-blue-500 h-8 w-8 p-2 rounded-md cursor-pointer"
+                className="bg-blue-500 h-7 w-7 md:h-9 md:w-9 p-1.5 md:p-2 rounded-md cursor-pointer"
               />
             )}
           </div>

@@ -9,13 +9,11 @@ import { UserDetailContext } from "@/context/UserDetailContext";
 
 const Pricing = () => {
   const { userDetail, setUserDetail } = useContext(UserDetailContext);
-  const latestUserDetail =
-    useQuery(api.users.GetUser, { email: userDetail?.email || "" }, { enabled: !!userDetail?.email }) || {};
+  const latestUserDetail = useQuery(api.users.GetUser, { email: userDetail?.email || "" }, { enabled: !!userDetail?.email }) || {};
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   useEffect(() => {
-    // Load Razorpay script
     if (!window.Razorpay) {
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -38,8 +36,8 @@ const Pricing = () => {
       return;
     }
     setLoadingPlan(plan.name);
+    
     try {
-      // Create order with backend
       const orderResponse = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,18 +50,14 @@ const Pricing = () => {
         return;
       }
 
-      // Open Razorpay payment modal
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_API_KEY,
         amount: plan.price * 100,
         currency: "INR",
-        name: "Your SaaS App",
+        name: "CodeCraft AI",
         description: plan.name,
         order_id: orderId,
         handler: async (response) => {
-          alert(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
-
-          // Verify payment and update tokens
           const verifyResponse = await fetch("/api/razorpay/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -71,26 +65,23 @@ const Pricing = () => {
               paymentId: response.razorpay_payment_id,
               orderId: response.razorpay_order_id,
               signature: response.razorpay_signature,
-              tokens: plan.value, // plan.value is the numeric token amount to add
+              tokens: plan.value,
               userId: userDetail._id,
               userEmail: userDetail.email,
             }),
           });
           const data = await verifyResponse.json();
           if (data.success) {
-            alert(`Tokens Added! New Balance: ${data.newTokens}`);
             setUserDetail({ ...userDetail, token: data.newTokens });
-          } else {
-            alert("Payment verification failed. Contact support.");
           }
         },
         prefill: {
           name: userDetail.name || "User",
           email: userDetail.email || "user@example.com",
-          contact: "9999999999",
         },
         theme: { color: Colors.PRIMARY },
       };
+
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
@@ -101,30 +92,29 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: Colors.BACKGROUND }}>
-      <div className="mb-6">
-        <div>Remaining Tokens: {latestUserDetail.token || 0}</div>
+    <div className="min-h-screen py-8 md:py-12 px-2 md:px-6 lg:px-8" style={{ backgroundColor: Colors.BACKGROUND }}>
+      <div className="mb-6 text-center">
+        <div className="text-base md:text-lg font-medium">Remaining Tokens: {latestUserDetail.token || 0}</div>
       </div>
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-xl text-gray-500 max-w-2xl mx-auto">{Lookup.PRICING_DESC}</p>
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+          <p className="text-sm md:text-base text-gray-500 max-w-2xl mx-auto">{Lookup.PRICING_DESC}</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
           {Lookup.PRICING_OPTIONS.map((plan, index) => (
             <div
               key={index}
-              className="p-8 rounded-2xl shadow-lg flex flex-col justify-between"
-              style={{ backgroundColor: Colors.CHAT_BACKGROUND }}
+              className="p-4 md:p-6 rounded-xl shadow-lg flex flex-col justify-between bg-gray-800 text-white"
             >
               <div>
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-lg mb-1">Tokens: {plan.tokens}</p>
-                <p className="text-gray-600 mb-4">{plan.desc}</p>
-                <p className="text-xl font-semibold">Price: ${plan.price}</p>
+                <h3 className="text-lg md:text-xl font-bold mb-2">{plan.name}</h3>
+                <p className="text-sm md:text-base mb-1">Tokens: {plan.tokens}</p>
+                <p className="text-xs md:text-sm mb-4 text-gray-300">{plan.desc}</p>
+                <p className="text-base md:text-lg font-semibold">Price: ${plan.price}</p>
               </div>
               <Button
-                className="w-full mt-4"
+                className="w-full mt-4 text-sm md:text-base"
                 style={{ backgroundColor: Colors.PRIMARY }}
                 onClick={() => handlePayment(plan)}
                 disabled={loadingPlan === plan.name}
