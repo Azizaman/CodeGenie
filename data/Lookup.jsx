@@ -76,31 +76,31 @@ export default config;
   PRICING_OPTIONS:[
     {
       name:'Basic',
-      tokens:'50K',
-      value:50000,
+      tokens:'25K',
+      value:25000,
       desc:'Ideal for hobbyists and casual users for light, exploratory use.',
-      price:4.99
+      price:800
     },
     {
       name:'Starter',
-      tokens:'120K',
-      value:120000,
+      tokens:'50K',
+      value:50000,
       desc:'Designed for professionals who need to use Bolt a few times per week.',
-      price:9.99
+      price:1500
     },
     {
       name:'Pro',
-      tokens:'2.5M',
-      value:2500000,
+      tokens:'75k',
+      value:75000,
       desc:'Designed for professionals who need to use Bolt a few times per week.',
-      price:19.99
+      price:2500
     },
     {
       name:'Unlimted (License)',
-      tokens:'Unmited',
-      value:999999999,
+      tokens:'1M',
+      value:1000000,
       desc:'Designed for professionals who need to use Bolt a few times per week.',
-      price:49.99
+      price:4000
     }
   ]
 

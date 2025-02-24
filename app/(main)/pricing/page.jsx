@@ -3,11 +3,11 @@ import React, { useState, useContext, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Lookup from "@/data/Lookup";
 import Colors from "@/data/Colors";
-import { useMutation, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { UserDetailContext } from "@/context/UserDetailContext";
 
-function Pricing() {
+const Pricing = () => {
   const { userDetail, setUserDetail } = useContext(UserDetailContext);
   const latestUserDetail =
     useQuery(api.users.GetUser, { email: userDetail?.email || "" }, { enabled: !!userDetail?.email }) || {};
@@ -15,17 +15,13 @@ function Pricing() {
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   useEffect(() => {
-    // Load the Razorpay script and set the state when it's loaded.
+    // Load Razorpay script
     if (!window.Razorpay) {
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.async = true;
-      script.onload = () => {
-        setRazorpayLoaded(true);
-      };
-      script.onerror = () => {
-        console.error("Failed to load Razorpay SDK");
-      };
+      script.onload = () => setRazorpayLoaded(true);
+      script.onerror = () => console.error("Failed to load Razorpay SDK");
       document.body.appendChild(script);
     } else {
       setRazorpayLoaded(true);
@@ -37,16 +33,13 @@ function Pricing() {
       alert("Please login to purchase a plan.");
       return;
     }
-
     if (!razorpayLoaded) {
       alert("Razorpay SDK not loaded. Please try again.");
       return;
     }
-
     setLoadingPlan(plan.name);
-
     try {
-      // Step 1: Create Order (Backend)
+      // Create order with backend
       const orderResponse = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,7 +52,7 @@ function Pricing() {
         return;
       }
 
-      // Step 2: Open Razorpay Payment Modal
+      // Open Razorpay payment modal
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_API_KEY,
         amount: plan.price * 100,
@@ -70,7 +63,7 @@ function Pricing() {
         handler: async (response) => {
           alert(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
 
-          // Step 3: Verify Payment & Update Tokens
+          // Verify payment and update tokens
           const verifyResponse = await fetch("/api/razorpay/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -78,8 +71,9 @@ function Pricing() {
               paymentId: response.razorpay_payment_id,
               orderId: response.razorpay_order_id,
               signature: response.razorpay_signature,
-              userEmail: userDetail.email, // use email from context
-              tokens: plan.tokens,
+              tokens: plan.value, // plan.value is the numeric token amount to add
+              userId: userDetail._id,
+              userEmail: userDetail.email,
             }),
           });
           const data = await verifyResponse.json();
@@ -97,38 +91,40 @@ function Pricing() {
         },
         theme: { color: Colors.PRIMARY },
       };
-
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
       console.error("Payment error:", error);
       alert("Error processing payment.");
     }
-
     setLoadingPlan(null);
   };
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: Colors.BACKGROUND }}>
-      <div>
+      <div className="mb-6">
         <div>Remaining Tokens: {latestUserDetail.token || 0}</div>
       </div>
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Simple, transparent pricing</h2>
+          <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
           <p className="text-xl text-gray-500 max-w-2xl mx-auto">{Lookup.PRICING_DESC}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {Lookup.PRICING_OPTIONS.map((plan, index) => (
             <div
               key={index}
-              className="p-8 rounded-2xl shadow-lg"
+              className="p-8 rounded-2xl shadow-lg flex flex-col justify-between"
               style={{ backgroundColor: Colors.CHAT_BACKGROUND }}
             >
-              <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-              <p className="mb-6 text-gray-600">{plan.desc}</p>
+              <div>
+                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                <p className="text-lg mb-1">Tokens: {plan.tokens}</p>
+                <p className="text-gray-600 mb-4">{plan.desc}</p>
+                <p className="text-xl font-semibold">Price: ${plan.price}</p>
+              </div>
               <Button
-                className="w-full"
+                className="w-full mt-4"
                 style={{ backgroundColor: Colors.PRIMARY }}
                 onClick={() => handlePayment(plan)}
                 disabled={loadingPlan === plan.name}
@@ -141,6 +137,6 @@ function Pricing() {
       </div>
     </div>
   );
-}
+};
 
 export default Pricing;

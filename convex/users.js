@@ -10,23 +10,24 @@ export const CreateUser = mutation({
     uuid: v.string(),
   },
   handler: async (ctx, args) => {
+    const email = args.email.toLowerCase(); // Ensure emails are stored lowercase.
     const existingUser = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("email"), args.email))
+      .filter((q) => q.eq(q.field("email"), email))
       .unique();
 
     if (!existingUser) {
       const newUserId = await ctx.db.insert("users", {
         name: args.name,
-        email: args.email,
+        email,
         picture: args.picture,
         uuid: args.uuid,
-        token: 50000, // Default tokens for new users
+        token: 50000, // Default tokens for new users.
       });
       return {
         _id: newUserId,
         name: args.name,
-        email: args.email,
+        email,
         picture: args.picture,
         token: 50000,
       };
@@ -40,16 +41,12 @@ export const CreateUser = mutation({
 export const GetUser = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), args.email))
-      .unique();
-
-    if (!user) {
-      throw new Error(`User with email ${args.email} not found.`);
-    }
-
-    return user;
+    return (
+      (await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("email"), args.email.toLowerCase()))
+        .unique()) || null
+    );
   },
 });
 
@@ -65,8 +62,8 @@ export const UpdateToken = mutation({
       throw new Error("Not enough tokens.");
     }
     const newTokenCount = user.token - args.token;
-    const updatedUser = await ctx.db.patch(args.userId, { token: newTokenCount });
-    return updatedUser.token;
+    await ctx.db.patch(args.userId, { token: newTokenCount });
+    return { token: newTokenCount };
   },
 });
 
@@ -82,9 +79,8 @@ export const AddTokens = mutation({
       throw new Error(`User with ID ${args.userId} not found.`);
     }
     const newTokenCount = (Number(user.token) || 0) + args.tokensToAdd;
-    return ctx.db.patch(args.userId, { token: newTokenCount });
+    await ctx.db.patch(args.userId, { token: newTokenCount });
+    // Return an object with the updated token count.
+    return { token: newTokenCount };
   },
 });
-
-
-
