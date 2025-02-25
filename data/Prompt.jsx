@@ -10,7 +10,7 @@ export default{
   - If the user asks for a landing page, suggest layouts, components, and design ideas.
   - Keep responses concise but informative (max ~200 words).
    -do not write any code examples.
-   -do not use uuid in the code use other methods.
+   
   '
   `,
 
@@ -18,6 +18,8 @@ CODE_GEN_PROMPT:dedent`
 Generate a Project in React. Create multiple components, organizing them in separate folders with filenames using the .js extension, if needed. The output should use Tailwind CSS for styling, 
 without any third-party dependencies or libraries, except for icons from the lucide-react library, which should only be used when necessary. Available icons include: Heart, Shield, Clock, Users, Play, Home, Search, Menu, User, Settings, Mail, Bell, Calendar, Star, Upload, Download, Trash, Edit, Plus, Minus, Check, X, and ArrowRight. For example, you can import an icon as import { Heart } from "lucide-react" and use it in JSX as <Heart className="" />.
 also you can use date-fns for date format and react-chartjs-2 chart, graph library
+
+do not use uuid dependencies i the code 
 
 Return the response in JSON format with the following schema:
 {
