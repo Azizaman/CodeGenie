@@ -5,9 +5,9 @@ export default {
   HERO_HEADING: 'What do you want to build?',
   HERO_DESC: 'Prompt, run, edit, and deploy full-stack web apps.',
   INPUT_PLACEHOLDER: 'What you want to build?',
-  SIGNIN_HEADING: 'Continue With Bolt.New 2.0',
-  SIGNIN_SUBHEADING: 'To use Bolt you must log into an existing account or create one.',
-  SIGNIn_AGREEMENT_TEXT: 'By using Bolt, you agree to the collection of usage data for analytics.',
+  SIGNIN_HEADING: 'Continue With code-genie 2.0',
+  SIGNIN_SUBHEADING: 'To use code-genie you must log into an existing account or create one.',
+  SIGNIn_AGREEMENT_TEXT: 'By using code-genie, you agree to the collection of usage data for analytics.',
 
 
   DEFAULT_FILE: {
@@ -85,21 +85,21 @@ export default config;
       name:'Starter',
       tokens:'50K',
       value:50000,
-      desc:'Designed for professionals who need to use Bolt a few times per week.',
+      desc:'Designed for professionals who need to use code-genie a few times per week.',
       price:1500
     },
     {
       name:'Pro',
       tokens:'75k',
       value:75000,
-      desc:'Designed for professionals who need to use Bolt a few times per week.',
+      desc:'Designed for professionals who need to use code-genie a few times per week.',
       price:2500
     },
     {
       name:'Unlimted (License)',
       tokens:'1M',
       value:1000000,
-      desc:'Designed for professionals who need to use Bolt a few times per week.',
+      desc:'Designed for professionals who need to use code-genie a few times per week.',
       price:4000
     }
   ]

@@ -6,6 +6,7 @@ import {
   SandpackCodeEditor,
   SandpackPreview,
   SandpackFileExplorer,
+  OpenInCodeSandboxButton,
 } from "@codesandbox/sandpack-react";
 import Lookup from "@/data/Lookup";
 import axios from "axios";
@@ -98,7 +99,8 @@ function Codeview() {
   };
 
   return (
-    <div className="relative h-screen flex flex-col p-2 md:p-4">
+    <div className="relative h-screen flex flex-col p-2 md:p-4 mb-7">
+      {/* Navigation Bar */}
       <div className="bg-[#181818] w-full p-1 md:p-2 border rounded-full mb-2 md:mb-4">
         <div className="flex items-center flex-wrap bg-black p-1 w-full gap-2 md:gap-3 justify-center rounded-full">
           <h2
@@ -110,7 +112,12 @@ function Codeview() {
             Code Editor
           </h2>
           <h2
-            onClick={() => setActiveTab("preview")}
+            onClick={() => {
+              setActiveTab("preview");
+              setTimeout(() => {
+                document.querySelector("iframe")?.contentWindow?.location.reload();
+              }, 500); // Ensure preview refreshes after switching tabs
+            }}
             className={`text-xs md:text-sm cursor-pointer px-2 py-1 rounded-full ${
               activeTab === "preview" ? "text-blue-500 bg-blue-500 bg-opacity-25" : ""
             }`}
@@ -119,21 +126,37 @@ function Codeview() {
           </h2>
         </div>
       </div>
+
+      {/* Sandpack Code Editor & Preview */}
       
       <SandpackProvider
-        key={JSON.stringify(files)}
         files={files}
         template="react"
         theme="dark"
-        customSetup={{ dependencies: { ...Lookup.DEPENDANCY } }}
+        customSetup={{
+          dependencies: {
+            ...Lookup.DEPENDANCY,
+            "react": "latest",
+            "react-dom": "latest",
+            "tailwindcss": "latest",
+          },
+        }}
         options={{
           externalResources: ["https://unpkg.com/@tailwindcss/browser@4"],
+          showNavigator: true, // ✅ Ensures the "Run" button appears
+          showLineNumbers: true, // Shows line numbers in the editor
+          showInlineErrors: true, // Shows real-time errors
+          autoReload: true, // ✅ Ensures preview reloads properly
+          editorWidthPercentage: 60, // Adjust layout to speed up loading
           classes: {
             "sp-preview": "h-full",
-            "sp-preview-container": "h-full"
-          }
+            "sp-preview-container": "h-full",
+          },
         }}
       >
+        
+          
+        
         <SandpackLayout className="flex-1">
           {activeTab === "code" ? (
             <div className="flex flex-col md:flex-row w-full h-full">
@@ -142,22 +165,27 @@ function Codeview() {
             </div>
           ) : (
             <div className="w-full h-[calc(100vh-140px)]">
-              <SandpackPreview 
+              <SandpackPreview
                 className="h-full w-full"
                 showNavigator={true}
+                showRefreshButton={true} 
+                style={{ minHeight: "400px" }}
                 actionsChildren={
                   <button
                     className="sp-icon-rotate"
                     title="Refresh Preview"
-                    onClick={() => document.querySelector('iframe')?.contentWindow?.location.reload()}
+                    onClick={() => document.querySelector("iframe")?.contentWindow?.location.reload()}
                   />
                 }
               />
             </div>
           )}
+          <OpenInCodeSandboxButton className={'items-center '}/>
         </SandpackLayout>
+        
       </SandpackProvider>
 
+      {/* Loader */}
       {loading && (
         <div className="p-10 bg-gray-900 bg-opacity-80 absolute top-0 rounded-lg w-full h-full flex items-center justify-center">
           <Loader2Icon className="animate-spin h-8 w-8 md:h-10 md:w-10 text-white" />
