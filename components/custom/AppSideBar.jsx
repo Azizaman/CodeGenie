@@ -34,7 +34,16 @@ function AppSideBar() {
 
   const mobileHeader = (
     <div className="md:hidden flex items-center justify-between p-4 bg-black text-white w-full fixed top-0 z-40">
-      <div className="text-lg font-semibold">Menu</div>
+      <div className="text-lg font-semibold">
+        <Image 
+                src={'/logo.png'} 
+                alt='Logo' 
+                width={80} 
+                height={80}
+                className='w-12 h-12 md:w-16 md:h-16 cursor-pointer'
+                onClick={() => router.push('/')}
+              />
+      </div>
       <button onClick={() => setIsMobileSidebarOpen((prev) => !prev)} className="p-1">
         {isMobileSidebarOpen ? (
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -55,7 +64,16 @@ function AppSideBar() {
         <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileSidebarOpen(false)}></div>
         <div className="relative bg-black text-white w-full sm:w-64 h-full p-4 overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
-            <div className="text-lg font-semibold">Menu</div>
+            <div className="text-lg font-semibold">
+              <Image
+                      src={'/logo.png'} 
+                      alt='Logo' 
+                      width={80} 
+                      height={80}
+                      className='w-12 h-12 md:w-16 md:h-16 cursor-pointer'
+                      onClick={() => router.push('/')}
+                    />
+            </div>
             <button onClick={() => setIsMobileSidebarOpen(false)} className="p-1">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
