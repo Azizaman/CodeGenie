@@ -111,7 +111,7 @@ const Pricing = () => {
                 <h3 className="text-lg md:text-xl font-bold mb-2">{plan.name}</h3>
                 <p className="text-sm md:text-base mb-1">Tokens: {plan.tokens}</p>
                 <p className="text-xs md:text-sm mb-4 text-gray-300">{plan.desc}</p>
-                <p className="text-base md:text-lg font-semibold">Price: {plan.price}</p>
+                <p className="text-base md:text-lg font-semibold">Price:RS {plan.price}</p>
               </div>
               <Button
                 className="w-full mt-4 text-sm md:text-base"
