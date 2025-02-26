@@ -13,6 +13,14 @@ function Header() {
   const { userDetail } = useContext(UserDetailContext);
   const [openDialog, setOpenDialog] = useState(false);
 
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user"); // Remove user data
+    }
+    router.push("/"); // Redirect to home page
+    window.location.reload(); // Refresh page to clear state
+  };
+
   return (
     <div className="p-1 flex justify-between items-center w-full">
       {/* Logo */}
@@ -46,12 +54,7 @@ function Header() {
         ) : (
           <Button
             className="bg-red-500 mr-4 text-white hover:bg-red-400"
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                localStorage.removeItem("user");
-              }
-              window.location.reload();
-            }}
+            onClick={handleLogout} // Call logout function
           >
             Logout
           </Button>
