@@ -98,7 +98,7 @@ function Hero() {
           <button
             key={index}
             onClick={() => onGenerate(suggestion)}
-            className="bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition-colors text-sm"
+            className="bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition-colors text-sm ml-8"
           >
             {suggestion}
           </button>
