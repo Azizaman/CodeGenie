@@ -22,7 +22,7 @@ export const CreateUser = mutation({
         email,
         picture: args.picture,
         uuid: args.uuid,
-        token: 50000, // Default tokens for new users.
+        token: 10000, // Default tokens for new users.
       });
       return {
         _id: newUserId,
