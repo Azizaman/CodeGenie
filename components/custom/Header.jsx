@@ -45,7 +45,7 @@ function Header() {
           </Button>
         ) : (
           <Button
-            className="bg-red-500 text-white hover:bg-red-400"
+            className="bg-red-500 mr-4 text-white hover:bg-red-400"
             onClick={() => {
               if (typeof window !== "undefined") {
                 localStorage.removeItem("user");
