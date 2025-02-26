@@ -17,7 +17,7 @@ function Header() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("user"); // Remove user data
     }
-    window.location.reload(); // Refresh page to clear state
+    // window.location.reload(); // Refresh page to clear state
     router.push("/"); // Redirect to home page
    
   };
